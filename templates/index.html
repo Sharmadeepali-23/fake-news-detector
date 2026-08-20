@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}VeriNews | AI Fake News Detector - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-bg-glow"></div>
+    <div class="hero-container">
+        <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span>Powered by Scikit-Learn & NLP Pipeline</span>
+        </div>
+        <h1 class="hero-title">
+            Instantly Detect <span class="text-gradient">Fake News</span> with Machine Learning
+        </h1>
+        <p class="hero-subtitle">
+            <span id="typingEffect" class="typing-text">Detecting misinformation with statistical precision...</span>
+        </p>
+        
+        <div class="hero-cta-group">
+            <a href="{{ url_for('detector') }}" class="btn btn-primary btn-lg glow-btn">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Launch Detector
+            </a>
+            <a href="{{ url_for('history') }}" class="btn btn-secondary btn-lg">
+                <i class="fa-solid fa-clock-rotate-left"></i> View History Log
+            </a>
+        </div>
+
+        <!-- Dynamic Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card glass-card">
+                <div class="stat-icon icon-blue">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 class="stat-value" id="statTotal">{{ total_predictions }}</h3>
+                    <p class="stat-label">Total Articles Analyzed</p>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-icon icon-green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 class="stat-value" id="statReal">{{ real_count }}</h3>
+                    <p class="stat-label">Real News Confirmed</p>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-icon icon-red">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 class="stat-value" id="statFake">{{ fake_count }}</h3>
+                    <p class="stat-label">Fake News Flagged</p>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-icon icon-purple">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 class="stat-value">{{ accuracy }}%</h3>
+                    <p class="stat-label">Model Accuracy Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section how-it-works">
+    <div class="section-container">
+        <div class="section-header">
+            <span class="section-tag">CLASSIFICATION PIPELINE</span>
+            <h2 class="section-title">How VeriNews Analyzes Articles</h2>
+            <p class="section-desc">Our multi-stage Natural Language Processing pipeline transforms raw text into statistical probabilities in milliseconds.</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card glass-card">
+                <div class="step-number">01</div>
+                <div class="step-icon"><i class="fa-solid fa-file-pen"></i></div>
+                <h3>Input Article</h3>
+                <p>Paste any news headline or full article text into the detector console.</p>
+            </div>
+
+            <div class="step-card glass-card">
+                <div class="step-number">02</div>
+                <div class="step-icon"><i class="fa-solid fa-gears"></i></div>
+                <h3>NLP Preprocessing</h3>
+                <p>Text is stripped of punctuation, lowercased, lemmatized, and converted into TF-IDF vector matrices.</p>
+            </div>
+
+            <div class="step-card glass-card">
+                <div class="step-number">03</div>
+                <div class="step-icon"><i class="fa-solid fa-shield-cat"></i></div>
+                <h3>ML Prediction</h3>
+                <p>Ensemble machine learning model evaluates syntax patterns to output Real/Fake labels with confidence scores.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Grid -->
+<section class="section features-section">
+    <div class="section-container">
+        <div class="section-header">
+            <span class="section-tag">ENTERPRISE FEATURES</span>
+            <h2 class="section-title">Built for Accuracy & Transparency</h2>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card glass-card">
+                <i class="fa-solid fa-bolt feature-icon icon-blue"></i>
+                <h3>Instant Verification</h3>
+                <p>Receive real-time credibility assessments in under 100 milliseconds.</p>
+            </div>
+
+            <div class="feature-card glass-card">
+                <i class="fa-solid fa-gauge-high feature-icon icon-purple"></i>
+                <h3>Confidence Metrics</h3>
+                <p>Every analysis comes with an exact mathematical confidence percentage based on model probabilities.</p>
+            </div>
+
+            <div class="feature-card glass-card">
+                <i class="fa-solid fa-file-pdf feature-icon icon-red"></i>
+                <h3>PDF Audit Reports</h3>
+                <p>Download official PDF verification certificates for legal or archival purposes.</p>
+            </div>
+
+            <div class="feature-card glass-card">
+                <i class="fa-solid fa-chart-line feature-icon icon-green"></i>
+                <h3>Analytics Dashboard</h3>
+                <p>Track real-time trends, frequency graphs, and model accuracy via our admin console.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Predictions Live Feed -->
+{% if recent_predictions %}
+<section class="section recent-section">
+    <div class="section-container">
+        <div class="section-header">
+            <span class="section-tag">LIVE FEED</span>
+            <h2 class="section-title">Recent Community Verifications</h2>
+        </div>
+
+        <div class="table-responsive glass-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Article Headline</th>
+                        <th>Classification</th>
+                        <th>Confidence</th>
+                        <th>Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_predictions %}
+                    <tr>
+                        <td>{{ item.created_at.strftime('%b %d, %H:%M') }}</td>
+                        <td class="table-title-cell">{{ item.news_title or 'Untitled Article' }}</td>
+                        <td>
+                            {% if item.prediction == 'REAL NEWS' %}
+                            <span class="badge badge-success"><i class="fa-solid fa-check-circle"></i> REAL NEWS</span>
+                            {% else %}
+                            <span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> FAKE NEWS</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ item.confidence }}%</strong></td>
+                        <td>
+                            <a href="{{ url_for('download_pdf_report', id=item.id) }}" class="btn-icon" title="Download PDF Report">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="cta-banner">
+    <div class="cta-container glass-card">
+        <h2>Ready to Test an Article?</h2>
+        <p>Paste any news text to run immediate NLP vectorization and credibility classification.</p>
+        <a href="{{ url_for('detector') }}" class="btn btn-primary btn-lg glow-btn">
+            <i class="fa-solid fa-shield-halved"></i> Start Detection Now
+        </a>
+    </div>
+</section>
+{% endblock %}

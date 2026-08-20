@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}500 Internal Server Error | VeriNews{% endblock %}
+
+{% block content %}
+<div class="error-page-container">
+    <div class="error-card glass-card">
+        <h1 class="error-code">500</h1>
+        <h2>Internal Server Error</h2>
+        <p>Something went wrong on our servers. Please try again in a few moments.</p>
+        <a href="{{ url_for('home') }}" class="btn btn-primary glow-btn mt-3">
+            <i class="fa-solid fa-house"></i> Return to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

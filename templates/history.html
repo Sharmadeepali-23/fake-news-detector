@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}VeriNews | Prediction History Log{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-container flex-between">
+        <div>
+            <h1 class="page-title"><i class="fa-solid fa-clock-rotate-left"></i> Prediction History</h1>
+            <p class="page-subtitle">Browse, filter, search, and export past fake news classifications stored in SQLite.</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{{ url_for('export_csv') }}" class="btn btn-secondary">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+            </a>
+            {% if records %}
+            <form method="POST" action="{{ url_for('clear_all_history') }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to clear all history records?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-danger-outline">
+                    <i class="fa-solid fa-trash-can"></i> Clear History
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="section-container">
+    <!-- Search & Filter Controls Card -->
+    <div class="glass-card search-card">
+        <form method="GET" action="{{ url_for('history') }}" class="search-form">
+            <div class="search-input-group">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" name="query" value="{{ query_str }}" class="form-control search-field" placeholder="Search by title or text snippet...">
+            </div>
+            
+            <div class="filter-group">
+                <select name="filter_by" class="form-control select-field">
+                    <option value="ALL" {% if filter_by == 'ALL' %}selected{% endif %}>All Classifications</option>
+                    <option value="REAL NEWS" {% if filter_by == 'REAL NEWS' %}selected{% endif %}>Real News Only</option>
+                    <option value="FAKE NEWS" {% if filter_by == 'FAKE NEWS' %}selected{% endif %}>Fake News Only</option>
+                </select>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-filter"></i> Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- History Data Table -->
+    <div class="table-responsive glass-card mt-4">
+        {% if records %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date & Time</th>
+                    <th>News Title</th>
+                    <th>Classification</th>
+                    <th>Confidence</th>
+                    <th>Model Used</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in records %}
+                <tr>
+                    <td><code>VN-{{ "%05d" | format(item.id) }}</code></td>
+                    <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="table-title-cell">
+                        <strong class="item-title">{{ item.news_title or 'Untitled Article' }}</strong>
+                        <p class="item-snippet">{{ item.news_content[:120] }}...</p>
+                    </td>
+                    <td>
+                        {% if item.prediction == 'REAL NEWS' %}
+                        <span class="badge badge-success"><i class="fa-solid fa-check"></i> REAL NEWS</span>
+                        {% else %}
+                        <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> FAKE NEWS</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ item.confidence }}%</strong></td>
+                    <td><span class="model-tag">{{ item.model_used }}</span></td>
+                    <td class="actions-cell">
+                        <a href="{{ url_for('download_pdf_report', id=item.id) }}" class="btn-icon" title="Download PDF Report">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_history_item', id=item.id) }}" style="display:inline;" onsubmit="return confirm('Delete this prediction record?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-icon btn-icon-danger" title="Delete Record">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination-container">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('history', page=pagination.prev_num, query=query_str, filter_by=filter_by) }}" class="page-link">&laquo; Prev</a>
+            {% endif %}
+
+            {% for p in pagination.iter_pages() %}
+                {% if p %}
+                    {% if p == pagination.page %}
+                    <span class="page-link active">{{ p }}</span>
+                    {% else %}
+                    <a href="{{ url_for('history', page=p, query=query_str, filter_by=filter_by) }}" class="page-link">{{ p }}</a>
+                    {% endif %}
+                {% else %}
+                    <span class="page-ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('history', page=pagination.next_num, query=query_str, filter_by=filter_by) }}" class="page-link">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-table-state">
+            <i class="fa-solid fa-inbox empty-icon"></i>
+            <h3>No Prediction Records Found</h3>
+            <p>No history entries match your search criteria. Try adjusting your query or run a new article classification.</p>
+            <a href="{{ url_for('detector') }}" class="btn btn-primary glow-btn mt-3">Run Detector</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

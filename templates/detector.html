@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}VeriNews | News Credibility Detector{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-container">
+        <h1 class="page-title"><i class="fa-solid fa-magnifying-glass-chart"></i> Fake News Detector</h1>
+        <p class="page-subtitle">Paste news headlines or article text below to verify authentic journalism from artificial misinformation.</p>
+    </div>
+</div>
+
+<div class="detector-layout">
+    <!-- Left Column: Input Console -->
+    <div class="detector-input-col">
+        <div class="glass-card detector-card">
+            <div class="card-header-flex">
+                <h3><i class="fa-solid fa-file-lines"></i> Input Article</h3>
+                <div class="sample-preset-buttons">
+                    <button type="button" class="btn-sample btn-sample-real" id="btnSampleReal">
+                        <i class="fa-solid fa-square-check"></i> Sample Real
+                    </button>
+                    <button type="button" class="btn-sample btn-sample-fake" id="btnSampleFake">
+                        <i class="fa-solid fa-bug"></i> Sample Fake
+                    </button>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('detector') }}" id="detectorForm">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    <label for="title">{{ form.title.label.text }}</label>
+                    {{ form.title(class="form-control", placeholder="e.g. BREAKING: Major Scientific Breakthrough Discovered...", id="headlineInput") }}
+                    {% if form.title.errors %}
+                        <div class="form-error">{{ form.title.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="content">{{ form.content.label.text }} <span class="required-star">*</span></label>
+                    {{ form.content(class="form-control textarea-large", placeholder="Paste the full article body text here...", id="contentInput") }}
+                    {% if form.content.errors %}
+                        <div class="form-error">{{ form.content.errors[0] }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions flex-between">
+                    <div class="left-actions">
+                        <button type="submit" class="btn btn-primary glow-btn" id="btnDetect">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Detect News
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btnClear">
+                            <i class="fa-solid fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                    <span class="char-counter" id="charCounter">0 characters</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Results & Analytics Output -->
+    <div class="detector-result-col">
+        <!-- Loading State Spinner -->
+        <div class="glass-card loading-card hidden" id="loadingState">
+            <div class="spinner"></div>
+            <h3>Analyzing Article Corpus...</h3>
+            <p>Cleaning punctuation &bull; Lemmatizing text &bull; Computing TF-IDF vector matrix &bull; Running ML classifier</p>
+        </div>
+
+        <!-- Default Empty State -->
+        <div class="glass-card result-placeholder {% if result %}hidden{% endif %}" id="emptyState">
+            <div class="placeholder-icon">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <h3>Awaiting Input</h3>
+            <p>Paste an article on the left console and press <strong>Detect News</strong> to view real-time ML prediction metrics.</p>
+        </div>
+
+        <!-- Result Display Container -->
+        <div class="glass-card result-card {% if not result %}hidden{% endif %}" id="resultCard">
+            {% if result %}
+                <div class="result-header">
+                    <span class="result-tag">ANALYSIS RESULT</span>
+                    <h2 class="result-badge {% if result.is_real %}badge-real{% else %}badge-fake{% endif %}" id="resultBadge">
+                        {% if result.is_real %}
+                            <i class="fa-solid fa-circle-check"></i> REAL NEWS ✅
+                        {% else %}
+                            <i class="fa-solid fa-circle-xmark"></i> FAKE NEWS ❌
+                        {% endif %}
+                    </h2>
+                </div>
+
+                <div class="confidence-gauge-container">
+                    <div class="gauge-header">
+                        <span>Confidence Score</span>
+                        <strong class="gauge-value" id="confidenceValue">{{ result.confidence }}%</strong>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill {% if result.is_real %}fill-real{% else %}fill-fake{% endif %}" id="progressFill" style="width: {{ result.confidence }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="metadata-grid">
+                    <div class="meta-item">
+                        <i class="fa-solid fa-font"></i>
+                        <div class="meta-info">
+                            <span class="meta-label">Word Count</span>
+                            <span class="meta-val" id="metaWords">{{ result.metadata.word_count }} words</span>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fa-solid fa-clock"></i>
+                        <div class="meta-info">
+                            <span class="meta-label">Est. Read Time</span>
+                            <span class="meta-val" id="metaReadTime">{{ result.metadata.reading_time }} min</span>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fa-solid fa-microchip"></i>
+                        <div class="meta-info">
+                            <span class="meta-label">ML Model</span>
+                            <span class="meta-val" id="metaModel">{{ result.model_used }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if result.keywords %}
+                <div class="keywords-section">
+                    <h4><i class="fa-solid fa-key"></i> Key TF-IDF Feature Words</h4>
+                    <div class="tags-cloud" id="tagsCloud">
+                        {% for word in result.keywords %}
+                            <span class="tag-chip">{{ word }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="result-actions">
+                    <a href="{{ url_for('download_pdf_report', id=result.id) }}" class="btn btn-success" id="pdfReportLink">
+                        <i class="fa-solid fa-file-pdf"></i> Download PDF Report
+                    </a>
+                    <button class="btn btn-outline" id="btnCopyResult">
+                        <i class="fa-solid fa-copy"></i> Copy Summary
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

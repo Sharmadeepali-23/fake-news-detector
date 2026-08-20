@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}VeriNews | Admin Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-container flex-between">
+        <div>
+            <h1 class="page-title"><i class="fa-solid fa-chart-line"></i> Admin Dashboard</h1>
+            <p class="page-subtitle">Real-time system analytics, prediction distribution graphs, and activity audit metrics.</p>
+        </div>
+        <div>
+            <span class="user-badge"><i class="fa-solid fa-user-shield"></i> {{ current_user.username }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="section-container">
+    <!-- Stat Counter Cards -->
+    <div class="stats-grid">
+        <div class="stat-card glass-card">
+            <div class="stat-icon icon-blue">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value">{{ total }}</h3>
+                <p class="stat-label">Total Predictions</p>
+            </div>
+        </div>
+
+        <div class="stat-card glass-card">
+            <div class="stat-icon icon-green">
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value">{{ real_cnt }}</h3>
+                <p class="stat-label">Real News Items</p>
+            </div>
+        </div>
+
+        <div class="stat-card glass-card">
+            <div class="stat-icon icon-red">
+                <i class="fa-solid fa-bug"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value">{{ fake_cnt }}</h3>
+                <p class="stat-label">Fake News Items</p>
+            </div>
+        </div>
+
+        <div class="stat-card glass-card">
+            <div class="stat-icon icon-purple">
+                <i class="fa-solid fa-percent"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value">{{ avg_conf }}%</h3>
+                <p class="stat-label">Avg Model Confidence</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Visualizations Row -->
+    <div class="charts-grid mt-4">
+        <!-- Daily Activity Line Chart -->
+        <div class="chart-card glass-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-area"></i> Prediction Activity (Last 7 Days)</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="trendChartCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Real vs Fake Distribution Pie Chart -->
+        <div class="chart-card glass-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-pie"></i> Real vs. Fake Distribution</h3>
+            </div>
+            <div class="chart-body">
+                <canvas id="pieChartCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent System Activity Audit Log -->
+    <div class="mt-4">
+        <div class="glass-card">
+            <div class="card-header-flex">
+                <h3><i class="fa-solid fa-list-check"></i> Recent System Activity Log</h3>
+                <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline">View All History</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Title / Snippet</th>
+                            <th>Prediction</th>
+                            <th>Confidence</th>
+                            <th>IP Address</th>
+                            <th>Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_activities %}
+                            {% for item in recent_activities %}
+                            <tr>
+                                <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td class="table-title-cell">{{ item.news_title or item.news_content[:60] }}</td>
+                                <td>
+                                    {% if item.prediction == 'REAL NEWS' %}
+                                    <span class="badge badge-success">REAL NEWS</span>
+                                    {% else %}
+                                    <span class="badge badge-danger">FAKE NEWS</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ item.confidence }}%</strong></td>
+                                <td><code>{{ item.ip_address or '127.0.0.1' }}</code></td>
+                                <td>
+                                    <a href="{{ url_for('download_pdf_report', id=item.id) }}" class="btn-icon" title="PDF">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">No recent prediction activity found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}
