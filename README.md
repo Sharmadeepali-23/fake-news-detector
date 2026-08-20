@@ -168,3 +168,4 @@ To access the Admin Dashboard at `http://localhost:5000/login`:
 - **SQL Injection Prevention**: Built using `SQLAlchemy ORM` parameterized queries.
 - **XSS Sanitization**: Managed via `Jinja2` autoescaping.
 - **Password Hashing**: Encrypted using Werkzeug `PBKDF2` key stretching.
+"# fake-news-detector" 
